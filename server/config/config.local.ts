@@ -9,7 +9,7 @@ export default () => {
     port: 3306,
     database: 'rag_kb',
     username: 'root',
-    password: '',
+    password: process.env.MYSQL_PASSWORD || '123456',
     sync: { force: false, alter: true },
   };
 

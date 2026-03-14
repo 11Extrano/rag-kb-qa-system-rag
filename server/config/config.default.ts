@@ -25,13 +25,15 @@ export default (appInfo: EggAppInfo): any => {
     port: Number(process.env.MYSQL_PORT) || 3306,
     database: process.env.MYSQL_DATABASE || 'rag_kb',
     username: process.env.MYSQL_USER || 'root',
-    password: process.env.MYSQL_PASSWORD || '',
+    password: process.env.MYSQL_PASSWORD || '123456',
     timezone: '+08:00',
     define: {
       timestamps: true,
       underscored: true,
       freezeTableName: true,
     },
+    // 启动时自动建表/同步表结构（不删数据，仅 alter）
+    sync: { force: false, alter: true },
   };
 
   const ragConfig = {

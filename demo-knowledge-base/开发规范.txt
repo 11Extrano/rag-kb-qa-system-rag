@@ -1,0 +1,19 @@
+开发规范
+
+一、分支与发布
+- main：生产可用代码，仅接受 MR，不直接提交。
+- develop：日常开发集成分支。
+- feature/xxx：功能分支，从 develop 拉取，合并回 develop。
+- 发版时由 develop 打 tag，如 v1.0.0，再合并到 main。
+
+二、提交与 Code Review
+- 提交信息格式：类型(范围): 描述。例如：feat(api): 增加文档列表分页。
+- 类型：feat / fix / docs / style / refactor / test / chore。
+- 所有合并需至少一人 Code Review，通过后再合并。
+
+三、接口与安全
+- 对外 API 统一前缀 /api，管理端 /api/admin。
+- 敏感操作需鉴权，禁止在日志或前端打印密码、Token。
+
+四、测试与上线
+- 新增接口需补充单测或接口测试。上线前在预发环境验证通过。

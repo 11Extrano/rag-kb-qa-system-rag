@@ -31,18 +31,34 @@
    ```
    复制 `.env.example` 为 `.env`，并设置 `MYSQL_PASSWORD=rag_kb_dev`（与 docker-compose 一致）。
 
-3. **后端**
+3. **LanceDB（向量库）**
+   - **无需单独安装或启动**：使用嵌入式 LanceDB，数据存到本地目录。
+   - 默认目录：`server/.lancedb-data`（相对 server 进程 cwd）。可在 `.env` 中设置 `LANCEDB_PATH` 覆盖。
+   - 首次上传文档并完成“拆分 + 向量化”后会自动建表并写入向量。
+
+4. **大模型与嵌入（必配）**
+   - 默认使用 **Ollama**（`http://localhost:11434/v1`），模型：对话 `qwen2.5`、向量 `nomic-embed-text`。
+   - 若用 Ollama：安装并启动 Ollama 后执行：
+     ```bash
+     ollama pull qwen2.5
+     ollama pull nomic-embed-text
+     ```
+   - 若用其他 OpenAI 兼容接口（如 OpenAI、通义等）：在 `.env` 中设置 `LLM_BASE_URL`、`LLM_API_KEY`、`LLM_MODEL` 以及 `EMBEDDING_BASE_URL`、`EMBEDDING_API_KEY`、`EMBEDDING_MODEL`（见 `.env.example`）。
+
+5. **后端**
    ```bash
    cd server && npm install && npm run dev
    ```
    接口默认：http://127.0.0.1:7001
 
-4. **前端**（实现后）
+6. **前端**
    ```bash
    cd client && npm install && npm run dev
    ```
 
 根目录脚本：`npm run dev:server` / `npm run dev:client` 分别进入 server、client 开发。
+
+**常见问题**：问答报错或返回“答案生成服务暂时不可用”，多为 LLM 未配置或不可达。请确认 Ollama 已启动且已拉取上述模型，或已在 `.env` 中正确配置其它 API。
 
 ## API
 
