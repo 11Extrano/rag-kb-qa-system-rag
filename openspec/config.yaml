@@ -1,0 +1,20 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+context: |
+  Tech stack:
+  - Frontend: React 18, TypeScript, Rsbuild
+  - Backend: Egg.js, TypeScript, MySQL
+  - Vector store: LanceDB（Node 嵌入式，vectordb 包，数据落本地目录）
+  Domain: RAG 知识库问答（文档处理、向量存储、检索匹配、答案生成）
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
