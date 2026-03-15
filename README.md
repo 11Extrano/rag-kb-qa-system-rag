@@ -6,9 +6,8 @@
 
 📐 项目采用 DDD 领域建模 + OpenSpec 规格驱动开发，每次变更都有设计文档和规格可追溯，架构边界清晰、迭代可控。
 
-📎 [项目运行指南](https://github.com/11Extrano/rag-kb-qa-system/tree/main/docs/项目运行.md) ｜ 📋 [事件风暴（领域建模）](https://github.com/11Extrano/rag-kb-qa-system/tree/main/docs/事件风暴.md)
+📎 [项目运行指南](https://github.com/11Extrano/rag-kb-qa-system/blob/main/docs/项目运行.md) ｜ 📋 [事件风暴（领域建模）](https://github.com/11Extrano/rag-kb-qa-system/blob/main/docs/事件风暴.md)
 
----
 
 ## 🧩 二、设计方法论：DDD × OpenSpec（SDD）
 
@@ -58,7 +57,6 @@ OpenSpec Archive（归档变更，Delta Spec 合入主 Spec）
 | `support-pdf` | PDF 知识库支持 |
 | `embedding-batch-size-limit` | Embedding 批量限制适配 |
 
----
 
 ## 🏗️ 三、技术架构
 
@@ -76,50 +74,8 @@ OpenSpec Archive（归档变更，Delta Spec 合入主 Spec）
 
 ### 架构图
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  Client（React + Rsbuild）                               │
-│  ┌──────────┐  ┌──────────────┐                         │
-│  │知识库管理页 │  │ 问答页(SSE)  │   fetch + ReadableStream │
-│  └────┬─────┘  └──────┬───────┘   解析 SSE → 打字机效果  │
-│       │               │                                  │
-└───────┼───────────────┼──────────────────────────────────┘
-        │  /api/admin   │  /api/qa (stream: true)
-        ▼               ▼
-┌─────────────────────────────────────────────────────────┐
-│  Server（Egg.js）                                        │
-│                                                          │
-│  ┌──────────────────┐    ┌──────────────────────┐       │
-│  │ DocumentController│    │    QaController       │       │
-│  └────────┬─────────┘    └──────────┬───────────┘       │
-│           │                         │                    │
-│  ┌────────▼─────────┐    ┌─────────▼────────────┐       │
-│  │DocumentProcessing │    │  RetrievalMatch      │       │
-│  │  · 文本提取       │    │  · query 向量化       │       │
-│  │  · 清洗(BOM/控制符)│    │  · LanceDB top-k检索  │       │
-│  │  · 两段式分块     │    │  · MySQL 取原文组装    │       │
-│  └────────┬─────────┘    └─────────┬────────────┘       │
-│           │                         │                    │
-│  ┌────────▼─────────┐    ┌─────────▼────────────┐       │
-│  │  VectorStore      │    │  AnswerGeneration    │       │
-│  │  · EmbeddingBatch │    │  · Prompt 编排       │       │
-│  │  · LanceDB 写入   │    │  · LLM 流式生成      │       │
-│  └──────────────────┘    │  · 引用来源组装       │       │
-│                           └──────────────────────┘       │
-│                                                          │
-│  ┌──────────────┐  ┌──────────────┐                     │
-│  │EmbeddingProvider│ │ LlmProvider  │  ← OpenAI 兼容协议  │
-│  │(可切换模型)    │ │ (可切换模型) │    Provider 抽象层  │
-│  └──────────────┘  └──────────────┘                     │
-│                                                          │
-│  ┌──────────┐       ┌──────────┐                        │
-│  │  MySQL   │       │ LanceDB  │                        │
-│  │ 知识库+片段 │       │  向量索引 │                        │
-│  └──────────┘       └──────────┘                        │
-└─────────────────────────────────────────────────────────┘
-```
+![架构图](docs/framework.png)
 
----
 
 ## ✨ 四、技术亮点与难点
 
@@ -208,7 +164,6 @@ K 值通过环境变量 `RETRIEVAL_TOP_K` 配置（默认 5）。精确问答场
 - 配置量很小，React 插件、路径别名、API 代理都是内置的
 - 生产构建也快，不用额外折腾优化配置
 
----
 
 ## 📁 五、项目目录结构
 
@@ -262,7 +217,6 @@ rag-kb-qa-system/
 └── .env.example                     # 环境变量模板
 ```
 
----
 
 ## 🔄 六、核心数据流
 
@@ -295,7 +249,6 @@ rag-kb-qa-system/
     ReactMarkdown 渲染（打字机效果）
 ```
 
----
 
 ## ❓ 七、设计决策 FAQ
 
@@ -314,9 +267,8 @@ rag-kb-qa-system/
 **Q：OpenSpec 和 Vibe Coding 的核心区别？**
 > Vibe Coding 是"对话驱动"，上下文仅存在于聊天历史，容易丢失、无法复用。OpenSpec 是"规格驱动"，每次变更都生成 Proposal → Design → Specs → Tasks 的完整制品链，归档后成为项目资产，支持增量迭代和团队协作，本质上是把软件工程的严谨性引入 AI 辅助开发流程。
 
----
 
-## 八、总结
+## 📌 八、总结
 
 这个项目不只是跑通一个 RAG Demo，更多是在实践**怎么用工程化的方式做 AI 项目**：
 
