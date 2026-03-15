@@ -3,6 +3,8 @@ import OpenAI from 'openai';
 
 const MAX_RETRIES = 2;
 const TIMEOUT_MS = 30_000;
+/** 阿里云 DashScope 等接口限制单次 batch 不超过 10 */
+const EMBED_BATCH_SIZE = 10;
 
 export default class EmbeddingProviderService extends Service {
   private client: OpenAI | null = null;
@@ -37,14 +39,20 @@ export default class EmbeddingProviderService extends Service {
 
     const { model } = this.config.rag.embedding;
     const client = this.getClient();
+    const allEmbeddings: number[][] = [];
 
-    const response = await client.embeddings.create({
-      model,
-      input: texts,
-    });
+    for (let i = 0; i < texts.length; i += EMBED_BATCH_SIZE) {
+      const batch = texts.slice(i, i + EMBED_BATCH_SIZE);
+      const response = await client.embeddings.create({
+        model,
+        input: batch,
+      });
+      const sorted = response.data
+        .sort((a, b) => a.index - b.index)
+        .map(item => item.embedding);
+      allEmbeddings.push(...sorted);
+    }
 
-    return response.data
-      .sort((a, b) => a.index - b.index)
-      .map(item => item.embedding);
+    return allEmbeddings;
   }
 }
