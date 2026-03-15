@@ -1,5 +1,7 @@
 # 从领域建模到流式问答：基于 DDD + OpenSpec 规格驱动的 RAG 知识库 AI 实践
 
+![项目标题](docs/title.png)
+
 ## 📖 一、项目概述
 
 基于企业自有知识库的 **RAG（检索增强生成）AI 问答系统**。📄 上传知识库后自动清洗、分块、向量化入库；💬 用户提问后检索最相关片段，交由 🤖 大模型生成带引用来源的答案，✨ 前端 SSE 流式展示。
@@ -8,6 +10,7 @@
 
 📎 [项目运行指南](https://github.com/11Extrano/rag-kb-qa-system/blob/main/docs/项目运行.md) ｜ 📋 [事件风暴（领域建模）](https://github.com/11Extrano/rag-kb-qa-system/blob/main/docs/事件风暴.md)
 
+<br/>
 
 ## 🧩 二、设计方法论：DDD × OpenSpec（SDD）
 
@@ -57,6 +60,7 @@ OpenSpec Archive（归档变更，Delta Spec 合入主 Spec）
 | `support-pdf` | PDF 知识库支持 |
 | `embedding-batch-size-limit` | Embedding 批量限制适配 |
 
+<br/>
 
 ## 🏗️ 三、技术架构
 
@@ -76,6 +80,7 @@ OpenSpec Archive（归档变更，Delta Spec 合入主 Spec）
 
 ![架构图](docs/framework.png)
 
+<br/>
 
 ## ✨ 四、技术亮点与难点
 
@@ -164,6 +169,7 @@ K 值通过环境变量 `RETRIEVAL_TOP_K` 配置（默认 5）。精确问答场
 - 配置量很小，React 插件、路径别名、API 代理都是内置的
 - 生产构建也快，不用额外折腾优化配置
 
+<br/>
 
 ## 📁 五、项目目录结构
 
@@ -217,6 +223,7 @@ rag-kb-qa-system/
 └── .env.example                     # 环境变量模板
 ```
 
+<br/>
 
 ## 🔄 六、核心数据流
 
@@ -249,6 +256,7 @@ rag-kb-qa-system/
     ReactMarkdown 渲染（打字机效果）
 ```
 
+<br/>
 
 ## ❓ 七、设计决策 FAQ
 
@@ -267,6 +275,7 @@ rag-kb-qa-system/
 **Q：OpenSpec 和 Vibe Coding 的核心区别？**
 > Vibe Coding 是"对话驱动"，上下文仅存在于聊天历史，容易丢失、无法复用。OpenSpec 是"规格驱动"，每次变更都生成 Proposal → Design → Specs → Tasks 的完整制品链，归档后成为项目资产，支持增量迭代和团队协作，本质上是把软件工程的严谨性引入 AI 辅助开发流程。
 
+<br/>
 
 ## 📌 八、总结
 
