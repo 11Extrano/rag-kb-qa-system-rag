@@ -2,6 +2,8 @@ import { Service } from 'egg';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pdfParse = require('pdf-parse') as (buffer: Buffer, options?: { pagerender?: (pageData: any) => Promise<string> }) => Promise<{ text: string }>;
 
 export interface ChunkResult {
   chunkId: string;
@@ -10,21 +12,23 @@ export interface ChunkResult {
   metadata: Record<string, unknown> | null;
 }
 
+/** 当前支持的上传格式：纯文本按 UTF-8 读取，其余按格式解析后得到文本 */
+const SUPPORTED_EXTENSIONS = ['.txt', '.md', '.html', '.pdf'] as const;
+
 export default class DocumentProcessingService extends Service {
 
   /**
-   * 上传文档：接收文件，读取内容，持久化到 MySQL 文档表。
+   * 上传文档：接收文件，按格式提取文本并持久化到文档表。
    * 返回 doc_id。
    */
   async uploadDocument(file: { filepath: string; filename: string }): Promise<string> {
-    const docId = uuidv4();
-    const content = await fs.promises.readFile(file.filepath, 'utf-8');
     const ext = path.extname(file.filename).toLowerCase();
-
-    const supportedExts = ['.txt', '.md', '.html'];
-    if (!supportedExts.includes(ext)) {
-      throw new Error(`不支持的文件格式: ${ext}，当前支持: ${supportedExts.join(', ')}`);
+    if (!SUPPORTED_EXTENSIONS.includes(ext as typeof SUPPORTED_EXTENSIONS[number])) {
+      throw new Error(`不支持的文件格式: ${ext}，当前支持: ${SUPPORTED_EXTENSIONS.join(', ')}`);
     }
+
+    const docId = uuidv4();
+    const content = await this.extractFileContent(file.filepath, ext);
 
     await this.ctx.model.Document.create({
       doc_id: docId,
@@ -34,6 +38,44 @@ export default class DocumentProcessingService extends Service {
     });
 
     return docId;
+  }
+
+  /**
+   * 按扩展名从文件中提取纯文本，供入库与后续清洗/拆分使用。
+   * 新增格式时：在 SUPPORTED_EXTENSIONS 中增加扩展名，在此处增加分支并实现对应 extractXxx。
+   */
+  private async extractFileContent(filepath: string, ext: string): Promise<string> {
+    switch (ext) {
+      case '.txt':
+      case '.md':
+      case '.html':
+        return fs.promises.readFile(filepath, 'utf-8');
+      case '.pdf':
+        return this.extractTextFromPdf(filepath);
+      default:
+        throw new Error(`不支持的文件格式: ${ext}`);
+    }
+  }
+
+  /**
+   * PDF 文本提取：读入 Buffer 后交由 pdf-parse 解析，空结果或解析异常统一抛出明确错误。
+   */
+  private async extractTextFromPdf(filepath: string): Promise<string> {
+    try {
+      const buffer = await fs.promises.readFile(filepath);
+      const result = await pdfParse(buffer);
+      const text = (result?.text ?? '').trim();
+      if (!text) {
+        throw new Error('PDF 提取结果为空或无效，无法入库');
+      }
+      return text;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      if (message.includes('提取结果为空') || message.includes('无效')) {
+        throw err;
+      }
+      throw new Error('PDF 解析失败');
+    }
   }
 
   /**

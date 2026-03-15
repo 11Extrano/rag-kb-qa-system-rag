@@ -10,7 +10,7 @@ import type { DocumentItem } from '../types';
 const { Title } = Typography;
 const { Dragger } = Upload;
 
-const ALLOWED_EXTENSIONS = ['.txt', '.md', '.html'];
+const ALLOWED_EXTENSIONS = ['.txt', '.md', '.html', '.pdf'];
 const MAX_FILE_SIZE_MB = 20;
 
 const STATUS_MAP: Record<string, { color: string; text: string }> = {

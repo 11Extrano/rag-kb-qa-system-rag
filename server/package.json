@@ -17,6 +17,7 @@
   "dependencies": {
     "dotenv": "^16",
     "egg": "^3",
+    "pdf-parse": "^1.1.1",
     "egg-scripts": "^2",
     "egg-sequelize": "^6",
     "mysql2": "^3",
