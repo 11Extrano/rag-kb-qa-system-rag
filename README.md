@@ -74,7 +74,7 @@ OpenSpec Archive（归档变更，Delta Spec 合入主 Spec）
 | 向量存储 | **LanceDB**（嵌入式） | Node 同进程、零运维、数据落本地目录 |
 | 大语言模型 | OpenAI（通过 Provider 抽象） | 基于 OpenAI 兼容协议，可切换 Qwen / DeepSeek / Claude 等 |
 | Embedding | OpenAI text-embedding | 同样走 Provider 抽象，可按需替换其他向量化模型 |
-| 容器化 | Docker Compose | MySQL 一键启动 |
+| 容器化 | Docker Compose | 可选，MySQL 一键启动 |
 
 ### 架构图
 
@@ -219,7 +219,7 @@ rag-kb-qa-system/
 │   ├── specs/                       # 当前规格（5 个能力域）
 │   └── changes/archive/             # 已归档变更（4 轮迭代）
 │
-├── docker-compose.yml               # MySQL 容器
+├── docker-compose.yml               # 可选：MySQL 容器
 └── .env.example                     # 环境变量模板
 ```
 
