@@ -86,4 +86,47 @@ export default class AnswerGenerationService extends Service {
 
     return `抱歉，答案生成服务暂时不可用。以下是与您问题最相关的知识库片段，供参考：\n\n${snippets}`;
   }
+
+  /**
+   * 流式生成答案：先逐段 yield 文本（type: 'chunk'），最后 yield 引用列表（type: 'citations'）。
+   * 无匹配时 yield 友好提示后 yield 空 citations。
+   */
+  async *generateAnswerStream(
+    question: string,
+    matchedContents: MatchedContent[],
+  ): AsyncGenerator<{ type: 'chunk'; text: string } | { type: 'citations'; citations: Citation[] }, void, undefined> {
+    const citations: Citation[] = matchedContents.map(mc => ({
+      chunkId: mc.chunkId,
+      docId: mc.docId,
+      filename: mc.filename,
+      text: mc.text.length > 200 ? mc.text.slice(0, 200) + '...' : mc.text,
+      score: mc.score,
+    }));
+
+    if (matchedContents.length === 0) {
+      yield { type: 'chunk', text: '当前知识库中暂无相关内容，无法回答您的问题。请确认知识库中已上传相关文档。' };
+      yield { type: 'citations', citations: [] };
+      return;
+    }
+
+    const referenceText = this.formatReferences(matchedContents);
+    const messages: ChatMessage[] = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      {
+        role: 'user',
+        content: `【参考内容】\n${referenceText}\n\n【用户问题】\n${question}`,
+      },
+    ];
+
+    try {
+      for await (const text of this.service.llmProvider.chatStream(messages)) {
+        yield { type: 'chunk', text };
+      }
+    } catch (err: any) {
+      this.logger.error('[AnswerGeneration] 流式 LLM 调用失败:', err.message);
+      yield { type: 'chunk', text: this.buildFallbackAnswer(matchedContents) };
+    }
+
+    yield { type: 'citations', citations };
+  }
 }

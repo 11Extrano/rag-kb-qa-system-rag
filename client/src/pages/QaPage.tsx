@@ -4,7 +4,7 @@ import {
 } from 'antd';
 import { SendOutlined, FileTextOutlined } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
-import { askQuestion } from '../api';
+import { askQuestionStream } from '../api';
 import type { QaResult } from '../types';
 
 const { Title, Paragraph, Text } = Typography;
@@ -17,7 +17,7 @@ export default function QaPage() {
   const [hasAsked, setHasAsked] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     const q = question.trim();
     if (!q) {
       message.warning('请输入问题');
@@ -26,19 +26,23 @@ export default function QaPage() {
 
     setLoading(true);
     setError(null);
-    setResult(null);
+    setResult({ question: q, answer: '', citations: [] });
     setHasAsked(true);
 
-    try {
-      const data = await askQuestion(q);
-      setResult(data);
-    } catch (err: any) {
-      const msg = err.message || '请求失败，请稍后重试';
-      setError(msg);
-      message.error(msg);
-    } finally {
-      setLoading(false);
-    }
+    askQuestionStream(q, {
+      onChunk: (text) => {
+        setResult(prev => prev ? { ...prev, answer: prev.answer + text } : { question: q, answer: text, citations: [] });
+      },
+      onCitations: (citations) => {
+        setResult(prev => prev ? { ...prev, citations } : { question: q, answer: '', citations });
+      },
+      onDone: () => setLoading(false),
+      onError: (msg) => {
+        setError(msg);
+        setLoading(false);
+        message.error(msg);
+      },
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -78,7 +82,7 @@ export default function QaPage() {
         </div>
       </Card>
 
-      {loading && (
+      {loading && !result?.answer && (
         <Card>
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <Spin size="large" />
@@ -100,10 +104,11 @@ export default function QaPage() {
         </Card>
       )}
 
-      {!loading && !error && result && (
+      {(result && (result.answer || result.citations.length > 0)) && (
         <Card title="回答" style={{ marginBottom: 24 }}>
           <div style={{ lineHeight: 1.8 }}>
             <ReactMarkdown>{result.answer}</ReactMarkdown>
+            {loading && <span style={{ color: '#999' }}> 正在生成...</span>}
           </div>
 
           {result.citations.length > 0 && (
